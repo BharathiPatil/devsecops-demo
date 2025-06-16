@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'kubernetes/deployment.yaml'  # Prevent loops from auto-updatess
+      - 'kubernetes/deployment.yaml'  # Prevent loops from auto-updates
   pull_request:
     branches: [ main ]
 
@@ -121,16 +121,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           load: true
 
-      - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.4.0
-
-      - name: Scan local Docker image with Trivy
-        run: |
-          echo "Scanning image locally: devsecops-demo:sha-${{ github.sha }}"
-          trivy image --exit-code 1 \
-                      --severity CRITICAL,HIGH \
-                      --ignore-unfixed \
-                      devsecops-demo:sha-${{ github.sha }}
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Push Docker image
         uses: docker/build-push-action@v5
@@ -169,10 +169,3 @@ jobs:
           NEW_IMAGE="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
           sed -i "s|image: ${REGISTRY}/.*|image: ${NEW_IMAGE}|g" kubernetes/deployment.yaml
           echo "Updated deployment to use image: ${NEW_IMAGE}"
-          grep -A 1 "image:" kubernetes/deployment.yaml
-
-      - name: Commit and push changes
-        run: |
-          git add kubernetes/deployment.yaml
-          git commit -m "Update Kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
-          git push
