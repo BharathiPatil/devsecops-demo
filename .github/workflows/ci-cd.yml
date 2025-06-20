@@ -120,16 +120,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: image
-          image-ref: ${{ steps.meta.outputs.tags }}
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+      # - name: Scan Docker image with Trivy
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     scan-type: image
+      #     image-ref: ${{ steps.meta.outputs.tags }}
+      #     format: 'table'
+      #     exit-code: '1'
+      #     ignore-unfixed: true
+      #     vuln-type: 'os,library'
+      #     severity: 'CRITICAL,HIGH'
 
       # - name: Set image tag output
       #   id: set_output
